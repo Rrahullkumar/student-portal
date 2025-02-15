@@ -9,8 +9,15 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsAuthenticated(!!token);
+    // Listen for token changes and update authentication status
+    const checkAuth = () => {
+      const token = localStorage.getItem("token");
+      setIsAuthenticated(!!token);
+    };
+
+    checkAuth();
+    window.addEventListener("storage", checkAuth);  // Listen for token updates
+    return () => window.removeEventListener("storage", checkAuth); // Cleanup event listener
   }, []);
 
   // Function to update authentication state

@@ -3,20 +3,19 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import API_BASE_URL from "../config.js";
 
-function Login({ onLogin }) {  // Accept onLogin prop
+function Login({ onLogin }) {  
   const [form, setForm] = useState({ email: "", password: "" });
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       const res = await axios.post(`${API_BASE_URL}/api/auth/login`, form);
-      
+
       if (res.data.token) {
-        localStorage.setItem("token", res.data.token);
         onLogin(res.data.token);  // Update authentication state
-        navigate("/dashboard");   // Redirect after login
+        navigate("/dashboard", { replace: true });   // Redirect to dashboard after login
       }
     } catch (error) {
       console.error("Login failed:", error.response?.data || error.message);
