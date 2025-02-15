@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
@@ -7,47 +7,60 @@ import Dashboard from "./pages/Dashboard";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigate = useNavigate(); // Get navigate function
 
   useEffect(() => {
-    // Listen for token changes and update authentication status
     const checkAuth = () => {
       const token = localStorage.getItem("token");
       setIsAuthenticated(!!token);
     };
 
     checkAuth();
-    window.addEventListener("storage", checkAuth);  // Listen for token updates
-    return () => window.removeEventListener("storage", checkAuth); // Cleanup event listener
+    window.addEventListener("storage", checkAuth);
+    return () => window.removeEventListener("storage", checkAuth);
   }, []);
 
-  // Function to update authentication state
   const handleLogin = (token) => {
     localStorage.setItem("token", token);
     setIsAuthenticated(true);
+    navigate("/dashboard"); // Explicit navigation after login
   };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     setIsAuthenticated(false);
+    navigate("/login"); // Redirect to login after logout
   };
 
   return (
     <Router>
       <Navbar isAuthenticated={isAuthenticated} onLogout={handleLogout} />
       <Routes>
-        {/* Redirect to Dashboard if authenticated, otherwise Login */}
-        <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
+        {/* Redirect root path based on auth status */}
+        <Route
+          path="/"
+          element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />}
+        />
 
-        {/* Login Route - Pass handleLogin function */}
-        <Route path="/login" element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
+        {/* Login route with explicit navigation */}
+        <Route
+          path="/login"
+          element={!isAuthenticated ? <Login onLogin={handleLogin} /> : <Navigate to="/dashboard" />}
+        />
 
-        {/* Register Route */}
-        <Route path="/register" element={!isAuthenticated ? <Register onLogin={handleLogin} /> : <Navigate to="/dashboard" />} />
+        {/* Register route */}
+        <Route
+          path="/register"
+          element={!isAuthenticated ? <Register onLogin={handleLogin} /> : <Navigate to="/dashboard" />}
+        />
 
-        {/* Dashboard Route - Only accessible if logged in */}
-        <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
+        {/* Protected dashboard route */}
+        <Route
+          path="/dashboard"
+          element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
+        />
 
-        {/* 404 - Page Not Found */}
+        {/* 404 page */}
         <Route path="*" element={<h1 className="text-center text-3xl mt-10">404 - Page Not Found</h1>} />
       </Routes>
     </Router>
